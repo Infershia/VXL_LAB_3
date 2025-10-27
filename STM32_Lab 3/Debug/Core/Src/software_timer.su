@@ -1,0 +1,4 @@
+software_timer.c:22:6:setTimer	16	static
+software_timer.c:27:6:setLED7Timer	16	static
+software_timer.c:32:6:setBlinkLedTimer	16	static
+software_timer.c:37:6:timer_run	4	static

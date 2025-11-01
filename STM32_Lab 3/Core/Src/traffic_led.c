@@ -49,10 +49,30 @@ void LED_TRAFFIC_LOAD_BUFFER(void){
 	timeGREEN = bufferTimerForLED[GREEN];
 }
 
-// Function to store value in buffer
+// Function to store value in buffer with validation
 void LED_TRAFFIC_STORE_BUFFER(uint8_t time, uint8_t index){
-	bufferTimerForLED[index] = time;
+    switch(index) {
+    case RED:
+        bufferTimerForLED[RED] = time;
+        break;
+
+    case AMBER:
+        // tính lại red = amber + green
+        bufferTimerForLED[AMBER] = time;
+        bufferTimerForLED[RED] = bufferTimerForLED[AMBER] + bufferTimerForLED[GREEN];
+        break;
+
+    case GREEN:
+        //tính lại red = amber + green
+        bufferTimerForLED[GREEN] = time;
+        bufferTimerForLED[RED] = bufferTimerForLED[AMBER] + bufferTimerForLED[GREEN];
+        break;
+
+    default:
+        break;
+    }
 }
+
 
 // Function to setting led in vertical
 void LED_VERTICAL_RUN(void) {
@@ -90,35 +110,37 @@ void LED_VERTICAL_RUN(void) {
 
 // Function to setting led in horizontal
 void LED_HORIZONTAL_RUN(void) {
-	//RED2 - ON
-	if (counterRED1 > 0){
-		update_horizontal_clock_buffer(counterRED1);
-		HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, RESET);
-		HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, SET);
-		HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, SET);
-		counterRED1--;
-	}
-	//AMBER2 - ON
-	else if (counterAMBER1 > 0){
-		update_horizontal_clock_buffer(counterAMBER1);
-		HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, SET);
-		HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, RESET);
-		HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, SET);
-		counterAMBER1--;
-	}
-	//GREEN2 - ON
-	else if (counterGREEN1 > 0){
-		update_horizontal_clock_buffer(counterGREEN1);
-		HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, SET);
-		HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, SET);
-		HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, RESET);
-		counterGREEN1--;
-	}
-	if(counterGREEN1 == 0) {
-		counterRED1 = timeRED;
-		counterAMBER1 = timeAMBER;
-		counterGREEN1 = timeGREEN;
-	}
+    // RED2 - ON
+    if (counterRED1 > 0){
+        update_horizontal_clock_buffer(counterRED1);
+        HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, RESET);   // bật đèn đỏ
+        HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, SET);
+        HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, SET);
+        counterRED1--;
+    }
+    // GREEN2 - ON
+    else if (counterGREEN1 > 0){
+        update_horizontal_clock_buffer(counterGREEN1);
+        HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, SET);
+        HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, SET);
+        HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, RESET); // bật đèn xanh
+        counterGREEN1--;
+    }
+    // AMBER2 - ON
+    else if (counterAMBER1 > 0){
+        update_horizontal_clock_buffer(counterAMBER1);
+        HAL_GPIO_WritePin(LED_RED2_GPIO_Port, LED_RED2_Pin, SET);
+        HAL_GPIO_WritePin(LED_AMBER2_GPIO_Port, LED_AMBER2_Pin, RESET); // bật đèn vàng
+        HAL_GPIO_WritePin(LED_GREEN2_GPIO_Port, LED_GREEN2_Pin, SET);
+        counterAMBER1--;
+    }
+
+    // Khi cả 3 bộ đếm đều hết → reset để lặp lại chu kỳ
+    if(counterRED1 == 0 && counterGREEN1 == 0 && counterAMBER1 == 0) {
+        counterRED1 = timeRED;
+        counterGREEN1 = timeGREEN;
+        counterAMBER1 = timeAMBER;
+    }
 }
 
 // Funtion is call when we want to display led in each mode
